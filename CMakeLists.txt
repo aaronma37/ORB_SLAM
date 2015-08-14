@@ -46,10 +46,47 @@ src/KeyFrameDatabase.cc
 src/Sim3Solver.cc
 src/Initializer.cc
 )
+
+rosbuild_add_executable(DistributedORB
+src/main.cc
+src/Tracking.cc
+src/LocalMapping.cc
+src/LoopClosing.cc
+src/ORBextractor.cc
+src/ORBmatcher.cc
+src/FramePublisher.cc
+src/Converter.cc
+src/MapPoint.cc
+src/KeyFrame.cc
+src/Map.cc
+src/MapPublisher.cc
+src/Optimizer.cc
+src/PnPsolver.cc
+src/Frame.cc
+src/KeyFrameDatabase.cc
+src/Sim3Solver.cc
+src/Initializer.cc
+)
+
 rosbuild_add_boost_directories()
 rosbuild_link_boost(${PROJECT_NAME} thread)
+rosbuild_link_boost(DistributedORB thread)
 
 target_link_libraries(${PROJECT_NAME}
+${OpenCV_LIBS}
+${EIGEN3_LIBS}
+cholmod
+${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_core.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_cholmod.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_dense.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_stuff.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_sba.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_sim3.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_slam3d.so
+)
+
+target_link_libraries(DistributedORB
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 cholmod

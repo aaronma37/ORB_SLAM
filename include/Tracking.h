@@ -54,6 +54,9 @@ class Tracking
 public:
     Tracking(ORBVocabulary* pVoc, FramePublisher* pFramePublisher, MapPublisher* pMapPublisher, Map* pMap, string strSettingPath);
 
+
+    int k=0;
+
     enum eTrackingState{
         SYSTEM_NOT_READY=-1,
         NO_IMAGES_YET=0,
@@ -72,11 +75,11 @@ public:
 
     void ForceRelocalisation();
 
-    eTrackingState mState;
+    eTrackingState mState[2]={NO_IMAGES_YET, NO_IMAGES_YET};
     eTrackingState mLastProcessedState;    
 
     // Current Frame
-    Frame mCurrentFrame;
+    Frame mCurrentFrame[2];
 
     // Initialization Variables
     std::vector<int> mvIniLastMatches;
@@ -87,7 +90,9 @@ public:
 
 
     void CheckResetByPublishers();
-
+    void setState(int z);
+    void setCamera(std::string sT);
+    void Reset();
 
 protected:
     void GrabImage(const sensor_msgs::ImageConstPtr& msg);
@@ -96,7 +101,7 @@ protected:
     void Initialize();
     void CreateInitialMap(cv::Mat &Rcw, cv::Mat &tcw);
 
-    void Reset();
+    
 
     bool TrackPreviousFrame();
     bool TrackWithMotionModel();
@@ -155,7 +160,7 @@ protected:
 
     //Last Frame, KeyFrame and Relocalisation Info
     KeyFrame* mpLastKeyFrame;
-    Frame mLastFrame;
+    Frame mLastFrame[2];
     unsigned int mnLastKeyFrameId;
     unsigned int mnLastRelocFrameId;
 

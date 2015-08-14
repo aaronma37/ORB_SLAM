@@ -187,13 +187,13 @@ void FramePublisher::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
 
 }
 
-void FramePublisher::Update(Tracking *pTracker)
+void FramePublisher::Update(Tracking *pTracker, int k)
 {
     boost::mutex::scoped_lock lock(mMutex);
-    pTracker->mCurrentFrame.im.copyTo(mIm);
-    mvCurrentKeys=pTracker->mCurrentFrame.mvKeys;
-    mvpMatchedMapPoints=pTracker->mCurrentFrame.mvpMapPoints;
-    mvbOutliers = pTracker->mCurrentFrame.mvbOutlier;
+    pTracker->mCurrentFrame[k].im.copyTo(mIm);
+    mvCurrentKeys=pTracker->mCurrentFrame[k].mvKeys;
+    mvpMatchedMapPoints=pTracker->mCurrentFrame[k].mvpMapPoints;
+    mvbOutliers = pTracker->mCurrentFrame[k].mvbOutlier;
 
     if(pTracker->mLastProcessedState==Tracking::INITIALIZING)
     {

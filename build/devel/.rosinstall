@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/aaron/catkin_ws/src/ORB_SLAM/build/devel/setup.sh

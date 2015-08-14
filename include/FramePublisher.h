@@ -43,7 +43,7 @@ class FramePublisher
 public:
     FramePublisher();    
 
-    void Update(Tracking *pTracker);
+    void Update(Tracking *pTracker, int k);
 
     void Refresh();
 

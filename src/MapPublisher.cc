@@ -26,7 +26,7 @@ namespace ORB_SLAM
 {
 
 
-MapPublisher::MapPublisher(Map* pMap):mpMap(pMap), mbCameraUpdated(false)
+MapPublisher::MapPublisher(Map* pMap):mpMap(pMap) //, mbCameraUpdated(false)
 {
     const char* MAP_FRAME_ID = "/ORB_SLAM/World";
     const char* POINTS_NAMESPACE = "MapPoints";
@@ -84,15 +84,26 @@ MapPublisher::MapPublisher(Map* pMap):mpMap(pMap), mbCameraUpdated(false)
     mMST.color.a = 1.0;
 
     //Configure Current Camera
-    mCurrentCamera.header.frame_id = MAP_FRAME_ID;
-    mCurrentCamera.ns = CAMERA_NAMESPACE;
-    mCurrentCamera.id=4;
-    mCurrentCamera.type = visualization_msgs::Marker::LINE_LIST;
-    mCurrentCamera.scale.x=0.01;//0.2; 0.03
-    mCurrentCamera.pose.orientation.w=1.0;
-    mCurrentCamera.action=visualization_msgs::Marker::ADD;
-    mCurrentCamera.color.g=1.0f;
-    mCurrentCamera.color.a = 1.0;
+    mCurrentCamera[0].header.frame_id = MAP_FRAME_ID;
+    mCurrentCamera[0].ns = CAMERA_NAMESPACE;
+    mCurrentCamera[0].id=4;
+    mCurrentCamera[0].type = visualization_msgs::Marker::LINE_LIST;
+    mCurrentCamera[0].scale.x=0.01;//0.2; 0.03
+    mCurrentCamera[0].pose.orientation.w=1.0;
+    mCurrentCamera[0].action=visualization_msgs::Marker::ADD;
+    mCurrentCamera[0].color.g=1.0f;
+    mCurrentCamera[0].color.a = 1.0;
+
+//Configure Current Camera
+    mCurrentCamera[1].header.frame_id = MAP_FRAME_ID;
+    mCurrentCamera[1].ns = CAMERA_NAMESPACE;
+    mCurrentCamera[1].id=4;
+    mCurrentCamera[1].type = visualization_msgs::Marker::LINE_LIST;
+    mCurrentCamera[1].scale.x=0.01;//0.2; 0.03
+    mCurrentCamera[1].pose.orientation.w=1.0;
+    mCurrentCamera[1].action=visualization_msgs::Marker::ADD;
+    mCurrentCamera[1].color.g=1.0f;
+    mCurrentCamera[1].color.a = 1.0;
 
     //Configure Reference MapPoints
     mReferencePoints.header.frame_id = MAP_FRAME_ID;
@@ -113,17 +124,23 @@ MapPublisher::MapPublisher(Map* pMap):mpMap(pMap), mbCameraUpdated(false)
     publisher.publish(mReferencePoints);
     publisher.publish(mCovisibilityGraph);
     publisher.publish(mKeyFrames);
-    publisher.publish(mCurrentCamera);
+    publisher.publish(mCurrentCamera[0]);
+    publisher.publish(mCurrentCamera[1]);
 }
 
 void MapPublisher::Refresh()
 {
-    if(isCamUpdated())
+    
+	for (int i=0; i<2; i++){
+if(isCamUpdated(i))
     {
-       cv::Mat Tcw = GetCurrentCameraPose();
-       PublishCurrentCamera(Tcw);
-       ResetCamFlag();
+	cv::Mat Tcw = GetCurrentCameraPose(i);
+       	PublishCurrentCamera(Tcw, i);
+	ResetCamFlag(i);
     }
+}
+       
+       
     if(mpMap->isMapUpdated())
     {
         vector<KeyFrame*> vKeyFrames = mpMap->GetAllKeyFrames();
@@ -289,10 +306,16 @@ void MapPublisher::PublishKeyFrames(const vector<KeyFrame*> &vpKFs)
     publisher.publish(mMST);
 }
 
-void MapPublisher::PublishCurrentCamera(const cv::Mat &Tcw)
+void MapPublisher::PublishCurrentCamera(const cv::Mat &Tcw, int k)
 {
-    mCurrentCamera.points.clear();
-
+    mCurrentCamera[k].points.clear();
+	if (k==0){
+mCurrentCamera[k].ns = "Test 1";
+}
+else if(k==1){
+mCurrentCamera[k].ns = "Test 2";
+}
+	
     float d = fCameraSize;
 
     //Camera is a pyramid. Define in camera coordinate system
@@ -326,51 +349,50 @@ void MapPublisher::PublishCurrentCamera(const cv::Mat &Tcw)
     msgs_p4.y=p4w.at<float>(1);
     msgs_p4.z=p4w.at<float>(2);
 
-    mCurrentCamera.points.push_back(msgs_o);
-    mCurrentCamera.points.push_back(msgs_p1);
-    mCurrentCamera.points.push_back(msgs_o);
-    mCurrentCamera.points.push_back(msgs_p2);
-    mCurrentCamera.points.push_back(msgs_o);
-    mCurrentCamera.points.push_back(msgs_p3);
-    mCurrentCamera.points.push_back(msgs_o);
-    mCurrentCamera.points.push_back(msgs_p4);
-    mCurrentCamera.points.push_back(msgs_p1);
-    mCurrentCamera.points.push_back(msgs_p2);
-    mCurrentCamera.points.push_back(msgs_p2);
-    mCurrentCamera.points.push_back(msgs_p3);
-    mCurrentCamera.points.push_back(msgs_p3);
-    mCurrentCamera.points.push_back(msgs_p4);
-    mCurrentCamera.points.push_back(msgs_p4);
-    mCurrentCamera.points.push_back(msgs_p1);
+    mCurrentCamera[k].points.push_back(msgs_o);
+    mCurrentCamera[k].points.push_back(msgs_p1);
+    mCurrentCamera[k].points.push_back(msgs_o);
+    mCurrentCamera[k].points.push_back(msgs_p2);
+    mCurrentCamera[k].points.push_back(msgs_o);
+    mCurrentCamera[k].points.push_back(msgs_p3);
+    mCurrentCamera[k].points.push_back(msgs_o);
+    mCurrentCamera[k].points.push_back(msgs_p4);
+    mCurrentCamera[k].points.push_back(msgs_p1);
+    mCurrentCamera[k].points.push_back(msgs_p2);
+    mCurrentCamera[k].points.push_back(msgs_p2);
+    mCurrentCamera[k].points.push_back(msgs_p3);
+    mCurrentCamera[k].points.push_back(msgs_p3);
+    mCurrentCamera[k].points.push_back(msgs_p4);
+    mCurrentCamera[k].points.push_back(msgs_p4);
+    mCurrentCamera[k].points.push_back(msgs_p1);
 
-    mCurrentCamera.header.stamp = ros::Time::now();
-
-    publisher.publish(mCurrentCamera);
+    mCurrentCamera[k].header.stamp = ros::Time::now();
+    publisher.publish(mCurrentCamera[k]);
 }
 
-void MapPublisher::SetCurrentCameraPose(const cv::Mat &Tcw)
+void MapPublisher::SetCurrentCameraPose(const cv::Mat &Tcw, int k)
 {
-    boost::mutex::scoped_lock lock(mMutexCamera);
-    mCameraPose = Tcw.clone();
-    mbCameraUpdated = true;
+    boost::mutex::scoped_lock lock(mMutexCamera[k]);
+    mCameraPose[k] = Tcw.clone();
+    mbCameraUpdated[k] = true;
 }
 
-cv::Mat MapPublisher::GetCurrentCameraPose()
+cv::Mat MapPublisher::GetCurrentCameraPose(int k)
 {
-    boost::mutex::scoped_lock lock(mMutexCamera);
-    return mCameraPose.clone();
+    boost::mutex::scoped_lock lock(mMutexCamera[k]);
+    return mCameraPose[k].clone();
 }
 
-bool MapPublisher::isCamUpdated()
+bool MapPublisher::isCamUpdated(int k)
 {
-    boost::mutex::scoped_lock lock(mMutexCamera);
-    return mbCameraUpdated;
+    boost::mutex::scoped_lock lock(mMutexCamera[k]);
+    return mbCameraUpdated[k];
 }
 
-void MapPublisher::ResetCamFlag()
+void MapPublisher::ResetCamFlag(int k)
 {
-    boost::mutex::scoped_lock lock(mMutexCamera);
-    mbCameraUpdated = false;
+    boost::mutex::scoped_lock lock(mMutexCamera[k]);
+    mbCameraUpdated[k] = false;
 }
 
 } //namespace ORB_SLAM
